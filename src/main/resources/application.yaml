@@ -1,1 +1,3 @@
-spring.application.name: "recovery"
+spring:
+  application:
+    name: "recovery"
