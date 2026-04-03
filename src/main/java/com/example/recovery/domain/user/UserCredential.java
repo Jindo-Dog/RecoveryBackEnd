@@ -1,0 +1,33 @@
+package com.example.recovery.domain.user;
+
+import jakarta.persistence.*;
+import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
+
+import java.time.OffsetDateTime;
+
+@Entity
+@Table(name = "USER_CREDENTIALS")
+public class UserCredential {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "credential_id", nullable = false)
+    private Long id;
+
+    @NotFound(action = NotFoundAction.EXCEPTION)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id", insertable = true, updatable = true, nullable = false)
+    private User user;
+
+    @Column(name = "email", nullable = false, length = Integer.MAX_VALUE)
+    private String email;
+
+    @Column(name = "password", nullable = false, length = Integer.MAX_VALUE)
+    private String password;
+
+    @ColumnDefault("now()")
+    @Column(name = "updated_at", nullable = false)
+    private OffsetDateTime updatedAt;
+
+}

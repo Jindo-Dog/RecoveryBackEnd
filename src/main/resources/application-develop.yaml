@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: "recovery"
+  datasource:
+    driver-class-name: "org.postgresql.Driver"
+    url: ${DB_HOST_DEVELOP}
+    username: ${DB_USERNAME_DEVELOP}
+    password: ${DB_PASSWORD_DEVELOP}
+  jpa:
+    database: POSTGRESQL
+    generate-ddl: false
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: "org.hibernate.dialect.PostgreSQLDialect"
+        format_sql: true
+        use_sql_comments: true
+    defer-datasource-initialization: false
+  sql:
+    init:
+      mode: never
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+#  mail:
+#    host: smtp.gmail.com
+#    port: 587
+#    username: ${MAIL_USERNAME}
+#    password: ${MAIL_PASSWORD}
+#    properties:
+#      mail:
+#        smtp:
+#          auth: true
+#          required: true
+#        connection-timeout: 5000
+#        timeout: 5000
+#        write-timeout: 5000
+#  data:
+#    redis:
+#      host: localhost
+#      port: 6379
+
+server:
+  port: 0
