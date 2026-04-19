@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - develop
-      - temp
 
 env:
   DOCKER_REGISTRY: ${{ secrets.DOCKERHUB_USERNAME }}
