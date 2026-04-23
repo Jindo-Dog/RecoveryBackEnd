@@ -1,6 +1,6 @@
 package com.example.recovery.domain.oauth2;
 
-import com.example.recovery.domain.user.User;
+import com.example.recovery.domain.user.Users;
 import jakarta.persistence.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.NotFound;
@@ -9,7 +9,7 @@ import org.hibernate.annotations.NotFoundAction;
 import java.time.OffsetDateTime;
 
 @Entity
-@Table(name = "USER_OAUTH2_CONNECTIONS")
+@Table(name = "user_oauth2_connections")
 public class UserOauth2Connection {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,7 +19,7 @@ public class UserOauth2Connection {
     @NotFound(action = NotFoundAction.EXCEPTION)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "user_id", insertable = true, updatable = true, nullable = false)
-    private User user;
+    private Users users;
 
     @NotFound(action = NotFoundAction.EXCEPTION)
     @ManyToOne(fetch = FetchType.LAZY)

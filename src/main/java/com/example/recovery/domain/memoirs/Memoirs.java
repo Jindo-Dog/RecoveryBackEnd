@@ -1,6 +1,6 @@
 package com.example.recovery.domain.memoirs;
 
-import com.example.recovery.domain.user.User;
+import com.example.recovery.domain.user.Users;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,7 +16,7 @@ import java.util.Map;
 @Getter
 @Setter
 @Entity
-@Table(name = "MEMOIRS")
+@Table(name = "memoirs")
 public class Memoirs {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,7 +26,7 @@ public class Memoirs {
     @NotFound(action = NotFoundAction.EXCEPTION)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "user_id", insertable = true, updatable = true, nullable = false)
-    private User user;
+    private Users users;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "memoir")

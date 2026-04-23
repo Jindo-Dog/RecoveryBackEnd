@@ -16,11 +16,11 @@ public class MemoirRepositoryImpl implements MemoirRepositoryCustom {
 
     @Override
     public List<Memoirs> getMemoirsByRequest(MemoirListRequest request) {
-        QMemoirs memoir = QMemoirs.memoirs;
+        QMemoirs memoirs = QMemoirs.memoirs;
 
-        return queryFactory.selectFrom(memoir)
-                .where(memoir.user.id.eq(request.getUserId()))
-                .orderBy(memoir.date.desc())
+        return queryFactory.selectFrom(memoirs)
+                .where(memoirs.users.id.eq(request.getUserId()))
+                .orderBy(memoirs.date.desc())
                 .fetch();
     }
 }
