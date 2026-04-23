@@ -27,6 +27,7 @@ public class MemoirService {
                 .map(memoir -> MemoirSimple.builder()
                         .id(memoir.getId())
                         .memoir(memoir.getMemoir())
+                        .date(memoir.getDate())
                         .build())
                 .skip((long) (page - 1) * rowsPerPage)
                 .limit(rowsPerPage)
