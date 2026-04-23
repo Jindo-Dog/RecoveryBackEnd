@@ -2,6 +2,8 @@ package com.example.recovery.domain.memoirs;
 
 import com.example.recovery.domain.user.User;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.NotFound;
@@ -11,9 +13,11 @@ import org.hibernate.type.SqlTypes;
 import java.time.OffsetDateTime;
 import java.util.Map;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "MEMOIRS")
-public class Memoir {
+public class Memoirs {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "memoir_id", nullable = false)
@@ -39,5 +43,5 @@ public class Memoir {
     @ColumnDefault("now()")
     @Column(name = "date", nullable = false)
     private OffsetDateTime date;
-    
+
 }

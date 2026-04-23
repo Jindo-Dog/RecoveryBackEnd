@@ -24,7 +24,7 @@ public class UserOauth2Connection {
     @NotFound(action = NotFoundAction.EXCEPTION)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "provider_id", referencedColumnName = "provider_id", insertable = true, updatable = true, nullable = false)
-    private Oauth2Provider oauth2Provider;
+    private Oauth2Provider provider;
 
     @Column(name = "oauth2_user_id", nullable = false, length = 255)
     private String oauth2UserId;
