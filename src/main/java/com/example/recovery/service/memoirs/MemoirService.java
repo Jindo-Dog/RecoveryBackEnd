@@ -8,6 +8,7 @@ import com.example.recovery.response.MemoirSimpleResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -18,6 +19,7 @@ public class MemoirService {
 
     private final MemoirRepository memoirRepository;
 
+    @Transactional(readOnly = true)
     public MemoirSimpleResponse memoirList(MemoirListRequest request) {
         List<Memoirs> memoirs = memoirRepository.getMemoirsByRequest(request);
         int page = request.getPage();
