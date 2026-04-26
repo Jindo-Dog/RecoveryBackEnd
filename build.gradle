@@ -28,11 +28,11 @@ dependencies {
     implementation "org.springframework.boot:spring-boot-starter-security"
     implementation "org.springframework.boot:spring-boot-starter-validation"
     implementation "org.springframework.boot:spring-boot-starter-web"
-    testImplementation "org.springframework.boot:spring-boot-starter-security-test"
-    testImplementation "org.springframework.boot:spring-boot-starter-validation-test"
-    testImplementation "org.springframework.boot:spring-boot-starter-web-test"
+    testImplementation "org.springframework.boot:spring-boot-starter-test"
+    testImplementation "org.springframework.security:spring-security-test"
     developmentOnly "org.springframework.boot:spring-boot-devtools"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+    testRuntimeOnly "com.h2database:h2"
 
     // Lombok
     compileOnly "org.projectlombok:lombok"
@@ -45,7 +45,6 @@ dependencies {
     testImplementation "org.springframework.boot:spring-boot-starter-data-jpa-test"
     implementation "org.postgresql:postgresql"
     implementation "org.springframework.boot:spring-boot-starter-json"
-    implementation "org.hibernate.orm:hibernate-core:7.3.2.Final"
 
     // QueryDSL
     def queryDslVersion = "7.1"
@@ -65,6 +64,6 @@ jar {
     enabled = false
 }
 
-tasks.named("test") {
+test {
     useJUnitPlatform()
 }
