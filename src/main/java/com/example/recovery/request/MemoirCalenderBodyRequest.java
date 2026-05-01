@@ -5,6 +5,6 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class MemoirListRequest {
-    long userId;
+public class MemoirCalenderBodyRequest {
+    private long userId;
 }

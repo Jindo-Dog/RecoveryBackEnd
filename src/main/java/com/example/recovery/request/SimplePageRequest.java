@@ -8,8 +8,8 @@ import lombok.Setter;
 @Setter
 public class SimplePageRequest {
     @Positive
-    int page = 1;
+    private int page = 1;
 
     @Positive
-    int rowsPerPage = 10;
+    private int rowsPerPage = 10;
 }

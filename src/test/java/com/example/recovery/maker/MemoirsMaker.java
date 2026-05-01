@@ -4,7 +4,7 @@ import com.example.recovery.domain.memoirs.Memoirs;
 import com.example.recovery.domain.user.Users;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDate;
 import java.util.Map;
 
 public class MemoirsMaker {
@@ -67,7 +67,7 @@ public class MemoirsMaker {
         this.jsonMaker = new JsonMaker();
     }
 
-    public void persist(Users user, OffsetDateTime date) {
+    public void persist(Users user, LocalDate date) {
         Memoirs memoir = new Memoirs();
         memoir.setUsers(user);
         memoir.setMemoir(jsonMaker.parseJsonToMap(MEMOIR_JSON));

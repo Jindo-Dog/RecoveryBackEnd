@@ -5,7 +5,7 @@ import com.example.recovery.domain.memoirs.Memoirs;
 import com.example.recovery.domain.user.Users;
 import com.example.recovery.maker.MemoirsMaker;
 import com.example.recovery.maker.UsersMaker;
-import com.example.recovery.request.MemoirListRequest;
+import com.example.recovery.request.MemoirListBodyRequest;
 import com.example.recovery.request.SimplePageRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,6 +15,7 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.context.annotation.Import;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
@@ -49,14 +50,14 @@ class MemoirRepositoryImplTest {
         Users userB = usersMaker.persist("user-b", OffsetDateTime.parse("2026-01-01T00:00:00+09:00"));
         long userAId = usersMaker.extractId(userA);
 
-        memoirsMaker.persist(userA, OffsetDateTime.parse("2026-01-03T12:00:00+09:00"));
-        memoirsMaker.persist(userA, OffsetDateTime.parse("2026-01-01T12:00:00+09:00"));
-        memoirsMaker.persist(userB, OffsetDateTime.parse("2026-01-02T12:00:00+09:00"));
+        memoirsMaker.persist(userA, LocalDate.parse("2026-01-03"));
+        memoirsMaker.persist(userA, LocalDate.parse("2026-01-01"));
+        memoirsMaker.persist(userB, LocalDate.parse("2026-01-02"));
 
         entityManager.flush();
         entityManager.clear();
 
-        MemoirListRequest request = new MemoirListRequest();
+        MemoirListBodyRequest request = new MemoirListBodyRequest();
         SimplePageRequest simplePageRequest = new SimplePageRequest();
         request.setUserId(userAId);
 
@@ -66,8 +67,8 @@ class MemoirRepositoryImplTest {
         // then
         assertEquals(2, result.size());
         Memoirs firstMemoir = result.getFirst();
-        assertEquals(OffsetDateTime.parse("2026-01-03T12:00:00+09:00"), firstMemoir.getDate());
-        assertEquals(OffsetDateTime.parse("2026-01-01T12:00:00+09:00"), result.get(1).getDate());
+        assertEquals(LocalDate.parse("2026-01-03"), firstMemoir.getDate());
+        assertEquals(LocalDate.parse("2026-01-01"), result.get(1).getDate());
 
         Map<String, Object> memoir1 = memoirsMaker.asMap(firstMemoir.getMemoir().get("1"));
         assertEquals("2026/01/01 회고 - 오늘 공부한 것", memoir1.get("title"));
@@ -87,11 +88,11 @@ class MemoirRepositoryImplTest {
     void getMemoirsByRequest_returnsEmptyListWhenNoRows() {
         // given
         Users userA = usersMaker.persist("user-a", OffsetDateTime.parse("2026-01-01T00:00:00+09:00"));
-        memoirsMaker.persist(userA, OffsetDateTime.parse("2026-01-05T12:00:00+09:00"));
+        memoirsMaker.persist(userA, LocalDate.parse("2026-01-05"));
         entityManager.flush();
         entityManager.clear();
 
-        MemoirListRequest request = new MemoirListRequest();
+        MemoirListBodyRequest request = new MemoirListBodyRequest();
         SimplePageRequest simplePageRequest = new SimplePageRequest();
         request.setUserId(999L);
 
