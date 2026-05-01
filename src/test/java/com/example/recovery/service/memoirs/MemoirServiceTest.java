@@ -4,6 +4,7 @@ import com.example.recovery.domain.memoirs.Memoirs;
 import com.example.recovery.dto.MemoirSimple;
 import com.example.recovery.repository.memoirs.MemoirRepository;
 import com.example.recovery.request.MemoirListRequest;
+import com.example.recovery.request.SimplePageRequest;
 import com.example.recovery.response.MemoirSimpleResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -43,21 +44,25 @@ class MemoirServiceTest {
         memoir2.setDate(OffsetDateTime.parse("2026-01-02T12:30:00+09:00"));
 
         MemoirListRequest request = new MemoirListRequest();
-        request.setPage(1);
-        request.setRowsPerPage(1);
+        SimplePageRequest simplePageRequest = new SimplePageRequest();
 
-        given(memoirRepository.getMemoirsByRequest(request)).willReturn(List.of(memoir1, memoir2));
+        given(memoirRepository.getMemoirsByRequest(request, simplePageRequest)).willReturn(List.of(memoir1, memoir2));
 
         // when
-        MemoirSimpleResponse response = memoirService.memoirList(request);
+        MemoirSimpleResponse response = memoirService.memoirList(request, simplePageRequest);
 
         // then
         assertEquals(2, response.getTotal());
-        assertEquals(1, response.getList().size());
+        assertEquals(2, response.getList().size());
 
         MemoirSimple result = response.getList().getFirst();
         assertEquals(1L, result.getId());
         assertEquals("기록1", result.getMemoir().get("title"));
         assertEquals(OffsetDateTime.parse("2026-01-01T12:30:00+09:00"), result.getDate());
+
+        MemoirSimple result2 = response.getList().get(1);
+        assertEquals(1L, result2.getId());
+        assertEquals("기록2", result2.getMemoir().get("title"));
+        assertEquals(OffsetDateTime.parse("2026-01-02T12:30:00+09:00"), result2.getDate());
     }
 }

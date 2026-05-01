@@ -6,6 +6,7 @@ import com.example.recovery.domain.user.Users;
 import com.example.recovery.maker.MemoirsMaker;
 import com.example.recovery.maker.UsersMaker;
 import com.example.recovery.request.MemoirListRequest;
+import com.example.recovery.request.SimplePageRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,10 +57,11 @@ class MemoirRepositoryImplTest {
         entityManager.clear();
 
         MemoirListRequest request = new MemoirListRequest();
+        SimplePageRequest simplePageRequest = new SimplePageRequest();
         request.setUserId(userAId);
 
         // when
-        List<Memoirs> result = memoirRepository.getMemoirsByRequest(request);
+        List<Memoirs> result = memoirRepository.getMemoirsByRequest(request, simplePageRequest);
 
         // then
         assertEquals(2, result.size());
@@ -90,10 +92,11 @@ class MemoirRepositoryImplTest {
         entityManager.clear();
 
         MemoirListRequest request = new MemoirListRequest();
+        SimplePageRequest simplePageRequest = new SimplePageRequest();
         request.setUserId(999L);
 
         // when
-        List<Memoirs> result = memoirRepository.getMemoirsByRequest(request);
+        List<Memoirs> result = memoirRepository.getMemoirsByRequest(request, simplePageRequest);
 
         // then
         assertTrue(result.isEmpty());

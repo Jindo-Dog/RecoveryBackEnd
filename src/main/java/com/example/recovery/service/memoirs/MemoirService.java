@@ -4,6 +4,7 @@ import com.example.recovery.domain.memoirs.Memoirs;
 import com.example.recovery.dto.MemoirSimple;
 import com.example.recovery.repository.memoirs.MemoirRepository;
 import com.example.recovery.request.MemoirListRequest;
+import com.example.recovery.request.SimplePageRequest;
 import com.example.recovery.response.MemoirSimpleResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,10 +21,8 @@ public class MemoirService {
     private final MemoirRepository memoirRepository;
 
     @Transactional(readOnly = true)
-    public MemoirSimpleResponse memoirList(MemoirListRequest request) {
-        List<Memoirs> memoirs = memoirRepository.getMemoirsByRequest(request);
-        int page = request.getPage();
-        int rowsPerPage = request.getRowsPerPage();
+    public MemoirSimpleResponse memoirList(MemoirListRequest request, SimplePageRequest simplePageRequest) {
+        List<Memoirs> memoirs = memoirRepository.getMemoirsByRequest(request, simplePageRequest);
 
         List<MemoirSimple> memoirList = memoirs.stream()
                 .map(memoir -> MemoirSimple.builder()
@@ -31,8 +30,6 @@ public class MemoirService {
                         .memoir(memoir.getMemoir())
                         .date(memoir.getDate())
                         .build())
-                .skip((long) (page - 1) * rowsPerPage)
-                .limit(rowsPerPage)
                 .toList();
 
         return new MemoirSimpleResponse(memoirList, memoirs.size());
