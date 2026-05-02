@@ -1,13 +1,14 @@
 package com.example.recovery.service.memoirs;
 
+import com.example.recovery.common.exception.MemoirNotFoundException;
 import com.example.recovery.domain.memoirs.Memoirs;
 import com.example.recovery.dto.MemoirSimple;
 import com.example.recovery.repository.memoirs.MemoirRepository;
-import com.example.recovery.request.SimplePageRequest;
 import com.example.recovery.request.MemoirBodyRequest;
 import com.example.recovery.request.MemoirCalenderRequest;
+import com.example.recovery.request.SimplePageRequest;
 import com.example.recovery.response.MemoirCalenderResponse;
-import com.example.recovery.common.exception.MemoirNotFoundException;
+import com.example.recovery.response.MemoirResponse;
 import com.example.recovery.response.MemoirSimpleResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -109,5 +110,43 @@ class MemoirServiceTest {
 
         // when / then
         assertThrows(MemoirNotFoundException.class, () -> memoirService.getMemoirCalender(bodyRequest, calenderRequest));
+    }
+
+    @Test
+    @DisplayName("회고 단건 조회 서비스 - 정상 케이스")
+    void getMemoir_returnsMemoirResponse() {
+        // given
+        Memoirs memoir = new Memoirs();
+        memoir.setId(1L);
+        memoir.setMemoir(Map.of("title", "회고", "content", "내용"));
+        memoir.setImprovement(Map.of("title", "개선", "content", "개선 내용"));
+        memoir.setFeedback(Map.of("title", "피드백", "content", "피드백 내용"));
+
+        MemoirBodyRequest request = new MemoirBodyRequest();
+        request.setUserId(1L);
+
+        given(memoirRepository.findByIdAndUsersId(1L, 1L)).willReturn(java.util.Optional.of(memoir));
+
+        // when
+        MemoirResponse response = memoirService.getMemoir(request, 1L);
+
+        // then
+        assertNotNull(response);
+        assertEquals("회고", response.getMemoir().get("title"));
+        assertEquals("개선", response.getImprovement().get("title"));
+        assertEquals("피드백", response.getFeedback().get("title"));
+    }
+
+    @Test
+    @DisplayName("회고 단건 조회 서비스 - 회고 없음 예외")
+    void getMemoir_throwsWhenNotFound() {
+        // given
+        MemoirBodyRequest request = new MemoirBodyRequest();
+        request.setUserId(1L);
+
+        given(memoirRepository.findByIdAndUsersId(1L, 1L)).willReturn(java.util.Optional.empty());
+
+        // when / then
+        assertThrows(MemoirNotFoundException.class, () -> memoirService.getMemoir(request, 1L));
     }
 }
