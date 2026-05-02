@@ -5,7 +5,7 @@ import com.example.recovery.domain.memoirs.Memoirs;
 import com.example.recovery.domain.user.Users;
 import com.example.recovery.maker.MemoirsMaker;
 import com.example.recovery.maker.UsersMaker;
-import com.example.recovery.request.MemoirListBodyRequest;
+import com.example.recovery.request.MemoirBodyRequest;
 import com.example.recovery.request.SimplePageRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,7 +57,7 @@ class MemoirRepositoryImplTest {
         entityManager.flush();
         entityManager.clear();
 
-        MemoirListBodyRequest request = new MemoirListBodyRequest();
+        MemoirBodyRequest request = new MemoirBodyRequest();
         SimplePageRequest simplePageRequest = new SimplePageRequest();
         request.setUserId(userAId);
 
@@ -92,7 +92,7 @@ class MemoirRepositoryImplTest {
         entityManager.flush();
         entityManager.clear();
 
-        MemoirListBodyRequest request = new MemoirListBodyRequest();
+        MemoirBodyRequest request = new MemoirBodyRequest();
         SimplePageRequest simplePageRequest = new SimplePageRequest();
         request.setUserId(999L);
 

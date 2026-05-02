@@ -9,4 +9,6 @@ import java.util.Optional;
 
 public interface MemoirRepository extends JpaRepository<Memoirs, Long>, QuerydslPredicateExecutor<Memoirs>, MemoirRepositoryCustom {
     Optional<Memoirs> findByUsersIdAndDate(Long userId, LocalDate date);
+
+    Optional<Memoirs> findByIdAndUsersId(Long Id, Long userId);
 }

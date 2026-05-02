@@ -4,11 +4,11 @@ import com.example.recovery.common.exception.MemoirNotFoundException;
 import com.example.recovery.domain.memoirs.Memoirs;
 import com.example.recovery.dto.MemoirSimple;
 import com.example.recovery.repository.memoirs.MemoirRepository;
-import com.example.recovery.request.MemoirCalenderBodyRequest;
+import com.example.recovery.request.MemoirBodyRequest;
 import com.example.recovery.request.MemoirCalenderRequest;
-import com.example.recovery.request.MemoirListBodyRequest;
 import com.example.recovery.request.SimplePageRequest;
 import com.example.recovery.response.MemoirCalenderResponse;
+import com.example.recovery.response.MemoirResponse;
 import com.example.recovery.response.MemoirSimpleResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +25,7 @@ public class MemoirService {
     private final MemoirRepository memoirRepository;
 
     @Transactional(readOnly = true)
-    public MemoirSimpleResponse getMemoirList(MemoirListBodyRequest request, SimplePageRequest simplePageRequest) {
+    public MemoirSimpleResponse getMemoirList(MemoirBodyRequest request, SimplePageRequest simplePageRequest) {
         List<Memoirs> memoirs = memoirRepository.getMemoirsByRequest(request, simplePageRequest);
 
         List<MemoirSimple> memoirList = memoirs.stream()
@@ -40,7 +40,7 @@ public class MemoirService {
     }
 
     @Transactional(readOnly = true)
-    public MemoirCalenderResponse getMemoirCalender(MemoirCalenderBodyRequest request, MemoirCalenderRequest simplePageRequest) {
+    public MemoirCalenderResponse getMemoirCalender(MemoirBodyRequest request, MemoirCalenderRequest simplePageRequest) {
         Memoirs memoirs = memoirRepository.findByUsersIdAndDate(request.getUserId(), simplePageRequest.getDate())
                 .orElseThrow(() -> new MemoirNotFoundException("해당 날짜의 회고가 없습니다."));
 
@@ -51,5 +51,17 @@ public class MemoirService {
                 .build();
 
         return new MemoirCalenderResponse(memoirSimple);
+    }
+
+    @Transactional(readOnly = true)
+    public MemoirResponse getMemoir(MemoirBodyRequest request, Long memoirId) {
+        Memoirs memoirs = memoirRepository.findByIdAndUsersId(memoirId, request.getUserId())
+                .orElseThrow(() -> new MemoirNotFoundException("해당 회고가 없습니다."));
+
+        return MemoirResponse.builder()
+                .memoir(memoirs.getMemoir())
+                .improvement(memoirs.getImprovement())
+                .feedback(memoirs.getFeedback())
+                .build();
     }
 }

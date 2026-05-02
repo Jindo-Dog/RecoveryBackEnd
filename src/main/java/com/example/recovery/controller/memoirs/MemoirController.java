@@ -1,10 +1,10 @@
 package com.example.recovery.controller.memoirs;
 
-import com.example.recovery.request.MemoirCalenderBodyRequest;
+import com.example.recovery.request.MemoirBodyRequest;
 import com.example.recovery.request.MemoirCalenderRequest;
-import com.example.recovery.request.MemoirListBodyRequest;
 import com.example.recovery.request.SimplePageRequest;
 import com.example.recovery.response.MemoirCalenderResponse;
+import com.example.recovery.response.MemoirResponse;
 import com.example.recovery.response.MemoirSimpleResponse;
 import com.example.recovery.service.memoirs.MemoirService;
 import lombok.RequiredArgsConstructor;
@@ -19,12 +19,17 @@ public class MemoirController {
     private final MemoirService memoirService;
 
     @PostMapping(params = "!date")
-    public MemoirSimpleResponse viewMemoirsByList(@RequestBody MemoirListBodyRequest request, @Validated @ModelAttribute SimplePageRequest simplePageRequest) {
+    public MemoirSimpleResponse viewMemoirsByList(@Validated @RequestBody MemoirBodyRequest request, @Validated @ModelAttribute SimplePageRequest simplePageRequest) {
         return memoirService.getMemoirList(request, simplePageRequest);
     }
 
     @PostMapping(params = "date")
-    public MemoirCalenderResponse viewMemoirByCalender(@RequestBody MemoirCalenderBodyRequest request, @ModelAttribute MemoirCalenderRequest calenderRequest) {
+    public MemoirCalenderResponse viewMemoirByCalender(@Validated @RequestBody MemoirBodyRequest request, @Validated @ModelAttribute MemoirCalenderRequest calenderRequest) {
         return memoirService.getMemoirCalender(request, calenderRequest);
+    }
+
+    @PostMapping("/{memoirId}")
+    public MemoirResponse viewMemoir(@Validated @RequestBody MemoirBodyRequest request, @PathVariable Long memoirId) {
+        return memoirService.getMemoir(request, memoirId);
     }
 }

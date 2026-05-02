@@ -3,9 +3,8 @@ package com.example.recovery.service.memoirs;
 import com.example.recovery.domain.memoirs.Memoirs;
 import com.example.recovery.dto.MemoirSimple;
 import com.example.recovery.repository.memoirs.MemoirRepository;
-import com.example.recovery.request.MemoirListBodyRequest;
 import com.example.recovery.request.SimplePageRequest;
-import com.example.recovery.request.MemoirCalenderBodyRequest;
+import com.example.recovery.request.MemoirBodyRequest;
 import com.example.recovery.request.MemoirCalenderRequest;
 import com.example.recovery.response.MemoirCalenderResponse;
 import com.example.recovery.common.exception.MemoirNotFoundException;
@@ -47,7 +46,7 @@ class MemoirServiceTest {
         memoir2.setMemoir(Map.of("title", "기록2", "content", "내용2"));
         memoir2.setDate(LocalDate.parse("2026-01-02"));
 
-        MemoirListBodyRequest request = new MemoirListBodyRequest();
+        MemoirBodyRequest request = new MemoirBodyRequest();
         SimplePageRequest simplePageRequest = new SimplePageRequest();
 
         given(memoirRepository.getMemoirsByRequest(request, simplePageRequest)).willReturn(List.of(memoir1, memoir2));
@@ -79,7 +78,7 @@ class MemoirServiceTest {
         memoir.setMemoir(Map.of("title", "캘린더 회고", "content", "내용"));
         memoir.setDate(LocalDate.parse("2026-01-01"));
 
-        MemoirCalenderBodyRequest bodyRequest = new MemoirCalenderBodyRequest();
+        MemoirBodyRequest bodyRequest = new MemoirBodyRequest();
         bodyRequest.setUserId(1L);
         MemoirCalenderRequest calenderRequest = new MemoirCalenderRequest();
         calenderRequest.setDate(LocalDate.parse("2026-05-02"));
@@ -101,7 +100,7 @@ class MemoirServiceTest {
     @DisplayName("회고 캘린더 조회 서비스 - 해당 날짜 회고 없음 예외")
     void getMemoirCalender_throwsWhenNotFound() {
         // given
-        MemoirCalenderBodyRequest bodyRequest = new MemoirCalenderBodyRequest();
+        MemoirBodyRequest bodyRequest = new MemoirBodyRequest();
         bodyRequest.setUserId(99L);
         MemoirCalenderRequest calenderRequest = new MemoirCalenderRequest();
         calenderRequest.setDate(LocalDate.parse("2026-05-03"));
