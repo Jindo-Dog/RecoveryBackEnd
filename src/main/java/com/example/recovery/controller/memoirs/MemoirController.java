@@ -20,11 +20,11 @@ public class MemoirController {
 
     @PostMapping(params = "!date")
     public MemoirSimpleResponse viewMemoirsByList(@RequestBody MemoirListBodyRequest request, @Validated @ModelAttribute SimplePageRequest simplePageRequest) {
-        return memoirService.memoirList(request, simplePageRequest);
+        return memoirService.getMemoirList(request, simplePageRequest);
     }
 
     @PostMapping(params = "date")
     public MemoirCalenderResponse viewMemoirByCalender(@RequestBody MemoirCalenderBodyRequest request, @ModelAttribute MemoirCalenderRequest calenderRequest) {
-        return memoirService.memoirCalender(request, calenderRequest);
+        return memoirService.getMemoirCalender(request, calenderRequest);
     }
 }

@@ -5,6 +5,10 @@ import com.example.recovery.dto.MemoirSimple;
 import com.example.recovery.repository.memoirs.MemoirRepository;
 import com.example.recovery.request.MemoirListBodyRequest;
 import com.example.recovery.request.SimplePageRequest;
+import com.example.recovery.request.MemoirCalenderBodyRequest;
+import com.example.recovery.request.MemoirCalenderRequest;
+import com.example.recovery.response.MemoirCalenderResponse;
+import com.example.recovery.common.exception.MemoirNotFoundException;
 import com.example.recovery.response.MemoirSimpleResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,7 +18,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -32,7 +35,7 @@ class MemoirServiceTest {
 
     @Test
     @DisplayName("회고 목록 조회 서비스 - 페이징 처리")
-    void memoirList_returnsPagedMemoirs() {
+    void getMemoirList_returnsPagedMemoirs() {
         // given
         Memoirs memoir1 = new Memoirs();
         memoir1.setId(1L);
@@ -50,7 +53,7 @@ class MemoirServiceTest {
         given(memoirRepository.getMemoirsByRequest(request, simplePageRequest)).willReturn(List.of(memoir1, memoir2));
 
         // when
-        MemoirSimpleResponse response = memoirService.memoirList(request, simplePageRequest);
+        MemoirSimpleResponse response = memoirService.getMemoirList(request, simplePageRequest);
 
         // then
         assertEquals(2, response.getTotal());
@@ -65,5 +68,47 @@ class MemoirServiceTest {
         assertEquals(1L, result2.getId());
         assertEquals("기록2", result2.getMemoir().get("title"));
         assertEquals(LocalDate.parse("2026-01-02"), result2.getDate());
+    }
+
+    @Test
+    @DisplayName("회고 캘린더 조회 서비스 - 정상 케이스")
+    void getMemoirCalender_returnsMemoir() {
+        // given
+        Memoirs memoir = new Memoirs();
+        memoir.setId(1L);
+        memoir.setMemoir(Map.of("title", "캘린더 회고", "content", "내용"));
+        memoir.setDate(LocalDate.parse("2026-01-01"));
+
+        MemoirCalenderBodyRequest bodyRequest = new MemoirCalenderBodyRequest();
+        bodyRequest.setUserId(1L);
+        MemoirCalenderRequest calenderRequest = new MemoirCalenderRequest();
+        calenderRequest.setDate(LocalDate.parse("2026-05-02"));
+
+        given(memoirRepository.findByUsersIdAndDate(1L, calenderRequest.getDate())).willReturn(java.util.Optional.of(memoir));
+
+        // when
+        MemoirCalenderResponse response = memoirService.getMemoirCalender(bodyRequest, calenderRequest);
+
+        // then
+        assertNotNull(response);
+        assertNotNull(response.getMemoirSimple());
+        assertEquals(1L, response.getMemoirSimple().getId());
+        assertEquals("캘린더 회고", response.getMemoirSimple().getMemoir().get("title"));
+        assertEquals(LocalDate.parse("2026-01-01"), response.getMemoirSimple().getDate());
+    }
+
+    @Test
+    @DisplayName("회고 캘린더 조회 서비스 - 해당 날짜 회고 없음 예외")
+    void getMemoirCalender_throwsWhenNotFound() {
+        // given
+        MemoirCalenderBodyRequest bodyRequest = new MemoirCalenderBodyRequest();
+        bodyRequest.setUserId(99L);
+        MemoirCalenderRequest calenderRequest = new MemoirCalenderRequest();
+        calenderRequest.setDate(LocalDate.parse("2026-05-03"));
+
+        given(memoirRepository.findByUsersIdAndDate(99L, calenderRequest.getDate())).willReturn(java.util.Optional.empty());
+
+        // when / then
+        assertThrows(MemoirNotFoundException.class, () -> memoirService.getMemoirCalender(bodyRequest, calenderRequest));
     }
 }

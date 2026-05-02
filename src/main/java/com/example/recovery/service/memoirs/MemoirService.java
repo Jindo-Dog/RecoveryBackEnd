@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -26,7 +25,7 @@ public class MemoirService {
     private final MemoirRepository memoirRepository;
 
     @Transactional(readOnly = true)
-    public MemoirSimpleResponse memoirList(MemoirListBodyRequest request, SimplePageRequest simplePageRequest) {
+    public MemoirSimpleResponse getMemoirList(MemoirListBodyRequest request, SimplePageRequest simplePageRequest) {
         List<Memoirs> memoirs = memoirRepository.getMemoirsByRequest(request, simplePageRequest);
 
         List<MemoirSimple> memoirList = memoirs.stream()
@@ -41,7 +40,7 @@ public class MemoirService {
     }
 
     @Transactional(readOnly = true)
-    public MemoirCalenderResponse memoirCalender(MemoirCalenderBodyRequest request, MemoirCalenderRequest simplePageRequest) {
+    public MemoirCalenderResponse getMemoirCalender(MemoirCalenderBodyRequest request, MemoirCalenderRequest simplePageRequest) {
         Memoirs memoirs = memoirRepository.findByUsersIdAndDate(request.getUserId(), simplePageRequest.getDate())
                 .orElseThrow(() -> new MemoirNotFoundException("해당 날짜의 회고가 없습니다."));
 
