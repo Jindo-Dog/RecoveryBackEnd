@@ -91,10 +91,9 @@ class MemoirServiceTest {
 
         // then
         assertNotNull(response);
-        assertNotNull(response.getMemoirSimple());
-        assertEquals(1L, response.getMemoirSimple().getId());
-        assertEquals("캘린더 회고", response.getMemoirSimple().getMemoir().get("title"));
-        assertEquals(LocalDate.parse("2026-01-01"), response.getMemoirSimple().getDate());
+        assertEquals(1L, response.getId());
+        assertEquals("캘린더 회고", response.getMemoir().get("title"));
+        assertEquals(LocalDate.parse("2026-01-01"), response.getDate());
     }
 
     @Test
