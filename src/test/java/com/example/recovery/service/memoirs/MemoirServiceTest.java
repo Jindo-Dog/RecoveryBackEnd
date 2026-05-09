@@ -1,13 +1,14 @@
 package com.example.recovery.service.memoirs;
 
+import com.example.recovery.common.exception.MemoirAlreadyExistException;
 import com.example.recovery.common.exception.MemoirNotFoundException;
+import com.example.recovery.common.exception.UsersNotFoundException;
 import com.example.recovery.domain.memoirs.Memoirs;
+import com.example.recovery.domain.user.Users;
 import com.example.recovery.dto.MemoirSimple;
 import com.example.recovery.repository.memoirs.MemoirRepository;
-import com.example.recovery.request.MemoirBodyRequest;
-import com.example.recovery.request.MemoirCalenderRequest;
-import com.example.recovery.request.MemoirUpdateRequest;
-import com.example.recovery.request.SimplePageRequest;
+import com.example.recovery.repository.users.UsersRepository;
+import com.example.recovery.request.*;
 import com.example.recovery.response.MemoirCalenderResponse;
 import com.example.recovery.response.MemoirResponse;
 import com.example.recovery.response.MemoirSimpleResponse;
@@ -17,12 +18,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -32,6 +35,9 @@ class MemoirServiceTest {
 
     @Mock
     private MemoirRepository memoirRepository;
+
+    @Mock
+    private UsersRepository usersRepository;
 
     @InjectMocks
     private MemoirService memoirService;
@@ -187,5 +193,86 @@ class MemoirServiceTest {
 
         // when / then
         assertThrows(MemoirNotFoundException.class, () -> memoirService.updateMemoir(request, 1L));
+    }
+
+    @Test
+    @DisplayName("회고 작성 서비스 - 정상 케이스")
+    void writeMemoir_savesMemoir() {
+        // given
+        Users users = new Users();
+        ReflectionTestUtils.setField(users, "id", 1L);
+
+        MemoirWriteRequest request = new MemoirWriteRequest();
+        request.setUserId(1L);
+        request.setData(Map.of("title", "새 회고", "content", "새 내용"));
+        request.setDate(LocalDate.now().minusDays(1));
+
+        given(usersRepository.findById(1L)).willReturn(java.util.Optional.of(users));
+        given(memoirRepository.findByUsersIdAndDate(1L, request.getDate())).willReturn(java.util.Optional.empty());
+
+        // when
+        memoirService.writeMemoir(request);
+
+        // then
+        verify(memoirRepository).save(any(Memoirs.class));
+    }
+
+    @Test
+    @DisplayName("회고 작성 서비스 - 사용자 없음 예외")
+    void writeMemoir_throwsWhenUserNotFound() {
+        // given
+        MemoirWriteRequest request = new MemoirWriteRequest();
+        request.setUserId(1L);
+        request.setData(Map.of("title", "새 회고", "content", "새 내용"));
+        request.setDate(LocalDate.now().minusDays(1));
+
+        given(usersRepository.findById(1L)).willReturn(java.util.Optional.empty());
+
+        // when / then
+        assertThrows(UsersNotFoundException.class, () -> memoirService.writeMemoir(request));
+        verify(memoirRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("회고 작성 서비스 - 중복 회고 예외")
+    void writeMemoir_throwsWhenAlreadyExists() {
+        // given
+        Users users = new Users();
+        ReflectionTestUtils.setField(users, "id", 1L);
+
+        MemoirWriteRequest request = new MemoirWriteRequest();
+        request.setUserId(1L);
+        request.setData(Map.of("title", "새 회고", "content", "새 내용"));
+        request.setDate(LocalDate.now().minusDays(1));
+
+        Memoirs existing = new Memoirs();
+        existing.setId(10L);
+
+        given(usersRepository.findById(1L)).willReturn(java.util.Optional.of(users));
+        given(memoirRepository.findByUsersIdAndDate(1L, request.getDate())).willReturn(java.util.Optional.of(existing));
+
+        // when / then
+        assertThrows(MemoirAlreadyExistException.class, () -> memoirService.writeMemoir(request));
+        verify(memoirRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("회고 작성 서비스 - 미래 날짜 예외")
+    void writeMemoir_throwsWhenDateIsFuture() {
+        // given
+        Users users = new Users();
+        ReflectionTestUtils.setField(users, "id", 1L);
+
+        MemoirWriteRequest request = new MemoirWriteRequest();
+        request.setUserId(1L);
+        request.setData(Map.of("title", "새 회고", "content", "새 내용"));
+        request.setDate(LocalDate.now().plusDays(1));
+
+        given(usersRepository.findById(1L)).willReturn(java.util.Optional.of(users));
+        given(memoirRepository.findByUsersIdAndDate(1L, request.getDate())).willReturn(java.util.Optional.empty());
+
+        // when / then
+        assertThrows(IllegalArgumentException.class, () -> memoirService.writeMemoir(request));
+        verify(memoirRepository, never()).save(any());
     }
 }
