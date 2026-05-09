@@ -275,4 +275,41 @@ class MemoirServiceTest {
         assertThrows(IllegalArgumentException.class, () -> memoirService.writeMemoir(request));
         verify(memoirRepository, never()).save(any());
     }
+
+    @Test
+    @DisplayName("개선점 수정 서비스 - 정상 케이스")
+    void updateImprovement_updatesImprovementData() {
+        // given
+        Memoirs memoir = new Memoirs();
+        memoir.setId(1L);
+        memoir.setImprovement(Map.of("title", "기존 개선", "content", "기존 내용"));
+
+        MemoirUpdateRequest request = new MemoirUpdateRequest();
+        request.setUserId(1L);
+        request.setData(Map.of("title", "수정된 개선", "content", "수정된 내용"));
+
+        given(memoirRepository.findByIdAndUsersId(1L, 1L)).willReturn(java.util.Optional.of(memoir));
+
+        // when
+        memoirService.updateImprovement(request, 1L);
+
+        // then
+        assertEquals("수정된 개선", memoir.getImprovement().get("title"));
+        assertEquals("수정된 내용", memoir.getImprovement().get("content"));
+        verify(memoirRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("개선점 수정 서비스 - 회고 없음 예외")
+    void updateImprovement_throwsWhenNotFound() {
+        // given
+        MemoirUpdateRequest request = new MemoirUpdateRequest();
+        request.setUserId(1L);
+        request.setData(Map.of("title", "수정된 개선", "content", "수정된 내용"));
+
+        given(memoirRepository.findByIdAndUsersId(1L, 1L)).willReturn(java.util.Optional.empty());
+
+        // when / then
+        assertThrows(MemoirNotFoundException.class, () -> memoirService.updateImprovement(request, 1L));
+    }
 }
