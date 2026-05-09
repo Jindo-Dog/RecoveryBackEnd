@@ -6,6 +6,7 @@ import com.example.recovery.dto.MemoirSimple;
 import com.example.recovery.repository.memoirs.MemoirRepository;
 import com.example.recovery.request.MemoirBodyRequest;
 import com.example.recovery.request.MemoirCalenderRequest;
+import com.example.recovery.request.MemoirUpdateRequest;
 import com.example.recovery.request.SimplePageRequest;
 import com.example.recovery.response.MemoirCalenderResponse;
 import com.example.recovery.response.MemoirResponse;
@@ -23,6 +24,8 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class MemoirServiceTest {
@@ -147,5 +150,42 @@ class MemoirServiceTest {
 
         // when / then
         assertThrows(MemoirNotFoundException.class, () -> memoirService.getMemoir(request, 1L));
+    }
+
+    @Test
+    @DisplayName("회고 수정 서비스 - 정상 케이스")
+    void updateMemoir_updatesMemoirData() {
+        // given
+        Memoirs memoir = new Memoirs();
+        memoir.setId(1L);
+        memoir.setMemoir(Map.of("title", "기존 회고", "content", "기존 내용"));
+
+        MemoirUpdateRequest request = new MemoirUpdateRequest();
+        request.setUserId(1L);
+        request.setData(Map.of("title", "수정된 회고", "content", "수정된 내용"));
+
+        given(memoirRepository.findByIdAndUsersId(1L, 1L)).willReturn(java.util.Optional.of(memoir));
+
+        // when
+        memoirService.updateMemoir(request, 1L);
+
+        // then
+        assertEquals("수정된 회고", memoir.getMemoir().get("title"));
+        assertEquals("수정된 내용", memoir.getMemoir().get("content"));
+        verify(memoirRepository, never()).save(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    @DisplayName("회고 수정 서비스 - 회고 없음 예외")
+    void updateMemoir_throwsWhenNotFound() {
+        // given
+        MemoirUpdateRequest request = new MemoirUpdateRequest();
+        request.setUserId(1L);
+        request.setData(Map.of("title", "수정된 회고", "content", "수정된 내용"));
+
+        given(memoirRepository.findByIdAndUsersId(1L, 1L)).willReturn(java.util.Optional.empty());
+
+        // when / then
+        assertThrows(MemoirNotFoundException.class, () -> memoirService.updateMemoir(request, 1L));
     }
 }
