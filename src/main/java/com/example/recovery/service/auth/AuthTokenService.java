@@ -9,6 +9,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,8 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class AuthTokenService {
     private static final String SESSION_KEY_PREFIX = "auth:session:";
+    private static final String REFRESH_TOKEN_COOKIE_NAME = "refreshToken";
+    private static final String REFRESH_TOKEN_PATH = "/api/auth";
 
     private final UserCredentialRepository userCredentialRepository;
     private final PasswordEncoder passwordEncoder;
@@ -44,6 +47,28 @@ public class AuthTokenService {
         saveSession(userId, sessionId, refreshToken);
 
         return new TokenResponse("Bearer", accessToken, refreshToken, jwtTokenProvider.getAccessTokenSeconds());
+    }
+
+    public String buildRefreshTokenCookie(String refreshToken) {
+        return ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, refreshToken)
+                .httpOnly(true)
+                .secure(true)
+                .path(REFRESH_TOKEN_PATH)
+                .sameSite("Lax")
+                .maxAge(jwtTokenProvider.getRefreshTokenSeconds())
+                .build()
+                .toString();
+    }
+
+    public String buildRefreshTokenClearCookie() {
+        return ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, "")
+                .httpOnly(true)
+                .secure(true)
+                .path(REFRESH_TOKEN_PATH)
+                .sameSite("Lax")
+                .maxAge(0)
+                .build()
+                .toString();
     }
 
     public TokenResponse refresh(RefreshTokenRequest request) {
@@ -72,6 +97,12 @@ public class AuthTokenService {
         saveSession(userId, sessionId, newRefreshToken);
 
         return new TokenResponse("Bearer", newAccessToken, newRefreshToken, jwtTokenProvider.getAccessTokenSeconds());
+    }
+
+    public TokenResponse refreshWithCookie(String refreshToken) {
+        RefreshTokenRequest request = new RefreshTokenRequest();
+        request.setRefreshToken(refreshToken);
+        return refresh(request);
     }
 
     public void logout(String accessToken) {

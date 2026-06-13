@@ -29,9 +29,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_URLS).permitAll()
                         .anyRequest().authenticated())
-                .exceptionHandling(ex -> ex.authenticationEntryPoint(((request, response, authException) -> {
-                    response.sendRedirect("/api/auth/login");
-                })))
+                .exceptionHandling(ex -> ex.authenticationEntryPoint((request, response, authException) -> response.sendRedirect("/api/auth/login")))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

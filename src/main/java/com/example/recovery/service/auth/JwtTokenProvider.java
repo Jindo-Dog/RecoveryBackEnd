@@ -3,6 +3,7 @@ package com.example.recovery.service.auth;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -14,7 +15,9 @@ import java.util.Date;
 @Component
 public class JwtTokenProvider {
     private final SecretKey secretKey;
+    @Getter
     private final long accessTokenSeconds;
+    @Getter
     private final long refreshTokenSeconds;
 
     public JwtTokenProvider(
@@ -62,14 +65,6 @@ public class JwtTokenProvider {
 
     public boolean isRefreshToken(Claims claims) {
         return "refresh".equals(claims.get("typ", String.class));
-    }
-
-    public long getAccessTokenSeconds() {
-        return accessTokenSeconds;
-    }
-
-    public long getRefreshTokenSeconds() {
-        return refreshTokenSeconds;
     }
 
     private String createToken(Long userId, String sessionId, String tokenType, long ttlSeconds) {

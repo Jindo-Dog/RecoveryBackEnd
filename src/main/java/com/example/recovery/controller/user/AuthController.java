@@ -8,7 +8,10 @@ import com.example.recovery.service.auth.AuthTokenService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,23 +29,40 @@ public class AuthController {
     private final AuthTokenService authTokenService;
 
     @PostMapping("/login")
-    public TokenResponse login(@Valid @RequestBody LoginRequest request) {
-        return authTokenService.login(request);
+    public ResponseEntity<TokenResponse> login(@Valid @RequestBody LoginRequest request) {
+        TokenResponse tokenResponse = authTokenService.login(request);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, authTokenService.buildRefreshTokenCookie(tokenResponse.getRefreshToken()))
+                .body(tokenResponse);
     }
 
     @PostMapping("/refresh")
-    public TokenResponse refresh(@Valid @RequestBody RefreshTokenRequest request) {
-        return authTokenService.refresh(request);
+    public ResponseEntity<TokenResponse> refresh(
+            @CookieValue(value = "refreshToken", required = false) String refreshTokenCookie,
+            @Valid @RequestBody(required = false) RefreshTokenRequest request
+    ) {
+        String refreshToken = refreshTokenCookie != null ? refreshTokenCookie : (request != null ? request.getRefreshToken() : null);
+        if (refreshToken == null || refreshToken.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "refresh token이 필요합니다.");
+        }
+
+        TokenResponse tokenResponse = authTokenService.refreshWithCookie(refreshToken);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, authTokenService.buildRefreshTokenCookie(tokenResponse.getRefreshToken()))
+                .body(tokenResponse);
     }
 
     @PostMapping("/logout")
-    public void logout(@RequestHeader("Authorization") String authorizationHeader) {
+    public ResponseEntity<Void> logout(@RequestHeader("Authorization") String authorizationHeader) {
         if (!authorizationHeader.startsWith(BEARER_PREFIX)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Authorization 헤더 형식이 잘못되었습니다.");
         }
 
         String accessToken = authorizationHeader.substring(BEARER_PREFIX.length());
         authTokenService.logout(accessToken);
+        return ResponseEntity.noContent()
+                .header(HttpHeaders.SET_COOKIE, authTokenService.buildRefreshTokenClearCookie())
+                .build();
     }
 
     @GetMapping("/me")
