@@ -1,9 +1,11 @@
 package com.example.recovery.service.auth;
 
 import com.example.recovery.domain.user.UserCredential;
+import com.example.recovery.domain.user.Users;
 import com.example.recovery.repository.users.UserCredentialRepository;
 import com.example.recovery.request.auth.LoginRequest;
 import com.example.recovery.request.auth.RefreshTokenRequest;
+import com.example.recovery.request.auth.SignupRequest;
 import com.example.recovery.response.auth.TokenResponse;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -29,6 +31,22 @@ public class AuthTokenService {
     private final PasswordEncoder passwordEncoder;
     private final StringRedisTemplate stringRedisTemplate;
     private final JwtTokenProvider jwtTokenProvider;
+
+    public void signup(SignupRequest request) {
+        if (userCredentialRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
+        }
+
+        UserCredential credential = new UserCredential();
+        Users users = new Users();
+        users.setNickname(request.getNickname());
+        
+        credential.setEmail(request.getEmail());
+        credential.setPassword(passwordEncoder.encode(request.getPassword()));
+        credential.setUsers(users);
+
+        userCredentialRepository.save(credential);
+    }
 
     public TokenResponse login(LoginRequest request) {
         UserCredential credential = userCredentialRepository.findByEmail(request.getEmail())
