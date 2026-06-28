@@ -1,20 +1,22 @@
 package com.example.recovery.service.auth;
 
 import com.example.recovery.domain.user.UserCredential;
-import com.example.recovery.domain.user.Users;
 import com.example.recovery.repository.users.UserCredentialRepository;
 import com.example.recovery.request.auth.LoginRequest;
 import com.example.recovery.request.auth.RefreshTokenRequest;
-import com.example.recovery.request.auth.SignupRequest;
 import com.example.recovery.response.auth.TokenResponse;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -31,22 +33,6 @@ public class AuthTokenService {
     private final PasswordEncoder passwordEncoder;
     private final StringRedisTemplate stringRedisTemplate;
     private final JwtTokenProvider jwtTokenProvider;
-
-    public void signup(SignupRequest request) {
-        if (userCredentialRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
-        }
-
-        UserCredential credential = new UserCredential();
-        Users users = new Users();
-        users.setNickname(request.getNickname());
-        
-        credential.setEmail(request.getEmail());
-        credential.setPassword(passwordEncoder.encode(request.getPassword()));
-        credential.setUsers(users);
-
-        userCredentialRepository.save(credential);
-    }
 
     public TokenResponse login(LoginRequest request) {
         UserCredential credential = userCredentialRepository.findByEmail(request.getEmail())
@@ -168,6 +154,16 @@ public class AuthTokenService {
 
     private String sessionKey(Long userId, String sessionId) {
         return SESSION_KEY_PREFIX + userId + ":" + sessionId;
+    }
+
+    public Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !(authentication.getPrincipal() instanceof Long userId)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "인증되지 않은 요청입니다.");
+        }
+
+        return userId;
     }
 }
 

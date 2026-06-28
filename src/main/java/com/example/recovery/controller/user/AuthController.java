@@ -6,6 +6,7 @@ import com.example.recovery.request.auth.SignupRequest;
 import com.example.recovery.response.auth.MeResponse;
 import com.example.recovery.response.auth.TokenResponse;
 import com.example.recovery.service.auth.AuthTokenService;
+import com.example.recovery.service.auth.UsersService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -22,16 +23,19 @@ public class AuthController {
     private static final String BEARER_PREFIX = "Bearer ";
 
     private final AuthTokenService authTokenService;
+    private final UsersService usersService;
 
     @PostMapping("/signup")
     @ResponseStatus(HttpStatus.CREATED)
     public void signup(@Valid @RequestBody SignupRequest request) {
-        authTokenService.signup(request);
+        usersService.signup(request);
     }
 
     @PostMapping("/login")
     public ResponseEntity<TokenResponse> login(@Valid @RequestBody LoginRequest request) {
         TokenResponse tokenResponse = authTokenService.login(request);
+
+        // react에서 refresh요청을 보낼 때 쿠키값을 함께 보내야 함
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, authTokenService.buildRefreshTokenCookie(tokenResponse.getRefreshToken()))
                 .body(tokenResponse);
