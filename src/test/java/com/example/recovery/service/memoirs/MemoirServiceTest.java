@@ -15,6 +15,8 @@ import com.example.recovery.request.SimplePageRequest;
 import com.example.recovery.response.MemoirCalenderResponse;
 import com.example.recovery.response.MemoirResponse;
 import com.example.recovery.response.MemoirSimpleResponse;
+import com.example.recovery.service.auth.AuthTokenService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,6 +28,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -36,14 +39,24 @@ import static org.mockito.Mockito.verify;
 @ExtendWith(MockitoExtension.class)
 class MemoirServiceTest {
 
+    private static final Long CURRENT_USER_ID = 1L;
+
     @Mock
     private MemoirRepository memoirRepository;
 
     @Mock
     private UsersRepository usersRepository;
 
+    @Mock
+    private AuthTokenService authTokenService;
+
     @InjectMocks
     private MemoirService memoirService;
+
+    @BeforeEach
+    void setUp() {
+        given(authTokenService.getCurrentUserId()).willReturn(CURRENT_USER_ID);
+    }
 
     @Test
     @DisplayName("회고 목록 조회 서비스 - 페이징 처리")
@@ -59,10 +72,11 @@ class MemoirServiceTest {
         memoir2.setMemoir(Map.of("title", "기록2", "content", "내용2"));
         memoir2.setDate(LocalDate.parse("2026-01-02"));
 
-        Long userId = 1L;
+        Long userId = CURRENT_USER_ID;
         SimplePageRequest simplePageRequest = new SimplePageRequest();
 
         given(memoirRepository.getMemoirsByRequest(userId, simplePageRequest)).willReturn(List.of(memoir1, memoir2));
+        given(memoirRepository.countMemoirsByRequest(userId, simplePageRequest)).willReturn(2L);
 
         // when
         MemoirSimpleResponse response = memoirService.getMemoirList(simplePageRequest);
@@ -94,7 +108,7 @@ class MemoirServiceTest {
         MemoirCalenderRequest calenderRequest = new MemoirCalenderRequest();
         calenderRequest.setDate(LocalDate.parse("2026-05-02"));
 
-        given(memoirRepository.findByUsersIdAndDate(1L, calenderRequest.getDate())).willReturn(java.util.Optional.of(memoir));
+        given(memoirRepository.findByUsersIdAndDate(CURRENT_USER_ID, calenderRequest.getDate())).willReturn(Optional.of(memoir));
 
         // when
         MemoirCalenderResponse response = memoirService.getMemoirCalender(calenderRequest);
@@ -113,7 +127,7 @@ class MemoirServiceTest {
         MemoirCalenderRequest calenderRequest = new MemoirCalenderRequest();
         calenderRequest.setDate(LocalDate.parse("2026-05-03"));
 
-        given(memoirRepository.findByUsersIdAndDate(99L, calenderRequest.getDate())).willReturn(java.util.Optional.empty());
+        given(memoirRepository.findByUsersIdAndDate(CURRENT_USER_ID, calenderRequest.getDate())).willReturn(Optional.empty());
 
         // when / then
         assertThrows(MemoirNotFoundException.class, () -> memoirService.getMemoirCalender(calenderRequest));
@@ -129,7 +143,7 @@ class MemoirServiceTest {
         memoir.setImprovement(Map.of("title", "개선", "content", "개선 내용"));
         memoir.setFeedback(Map.of("title", "피드백", "content", "피드백 내용"));
 
-        given(memoirRepository.findByIdAndUsersId(1L, 1L)).willReturn(java.util.Optional.of(memoir));
+        given(memoirRepository.findByIdAndUsersId(1L, CURRENT_USER_ID)).willReturn(Optional.of(memoir));
 
         // when
         MemoirResponse response = memoirService.getMemoir(1L);
@@ -145,7 +159,7 @@ class MemoirServiceTest {
     @DisplayName("회고 단건 조회 서비스 - 회고 없음 예외")
     void getMemoir_throwsWhenNotFound() {
         // given
-        given(memoirRepository.findByIdAndUsersId(1L, 1L)).willReturn(java.util.Optional.empty());
+        given(memoirRepository.findByIdAndUsersId(1L, CURRENT_USER_ID)).willReturn(Optional.empty());
 
         // when / then
         assertThrows(MemoirNotFoundException.class, () -> memoirService.getMemoir(1L));
@@ -162,7 +176,7 @@ class MemoirServiceTest {
         MemoirUpdateRequest request = new MemoirUpdateRequest();
         request.setData(Map.of("title", "수정된 회고", "content", "수정된 내용"));
 
-        given(memoirRepository.findByIdAndUsersId(1L, 1L)).willReturn(java.util.Optional.of(memoir));
+        given(memoirRepository.findByIdAndUsersId(1L, CURRENT_USER_ID)).willReturn(Optional.of(memoir));
 
         // when
         memoirService.updateMemoir(request, 1L);
@@ -180,7 +194,7 @@ class MemoirServiceTest {
         MemoirUpdateRequest request = new MemoirUpdateRequest();
         request.setData(Map.of("title", "수정된 회고", "content", "수정된 내용"));
 
-        given(memoirRepository.findByIdAndUsersId(1L, 1L)).willReturn(java.util.Optional.empty());
+        given(memoirRepository.findByIdAndUsersId(1L, CURRENT_USER_ID)).willReturn(Optional.empty());
 
         // when / then
         assertThrows(MemoirNotFoundException.class, () -> memoirService.updateMemoir(request, 1L));
@@ -197,8 +211,8 @@ class MemoirServiceTest {
         request.setData(Map.of("title", "새 회고", "content", "새 내용"));
         request.setDate(LocalDate.now().minusDays(1));
 
-        given(usersRepository.findById(1L)).willReturn(java.util.Optional.of(users));
-        given(memoirRepository.findByUsersIdAndDate(1L, request.getDate())).willReturn(java.util.Optional.empty());
+        given(usersRepository.findById(CURRENT_USER_ID)).willReturn(Optional.of(users));
+        given(memoirRepository.findByUsersIdAndDate(CURRENT_USER_ID, request.getDate())).willReturn(Optional.empty());
 
         // when
         memoirService.writeMemoir(request);
@@ -215,7 +229,7 @@ class MemoirServiceTest {
         request.setData(Map.of("title", "새 회고", "content", "새 내용"));
         request.setDate(LocalDate.now().minusDays(1));
 
-        given(usersRepository.findById(1L)).willReturn(java.util.Optional.empty());
+        given(usersRepository.findById(CURRENT_USER_ID)).willReturn(Optional.empty());
 
         // when / then
         assertThrows(UsersNotFoundException.class, () -> memoirService.writeMemoir(request));
@@ -236,8 +250,8 @@ class MemoirServiceTest {
         Memoirs existing = new Memoirs();
         existing.setId(10L);
 
-        given(usersRepository.findById(1L)).willReturn(java.util.Optional.of(users));
-        given(memoirRepository.findByUsersIdAndDate(1L, request.getDate())).willReturn(java.util.Optional.of(existing));
+        given(usersRepository.findById(CURRENT_USER_ID)).willReturn(Optional.of(users));
+        given(memoirRepository.findByUsersIdAndDate(CURRENT_USER_ID, request.getDate())).willReturn(Optional.of(existing));
 
         // when / then
         assertThrows(MemoirAlreadyExistException.class, () -> memoirService.writeMemoir(request));
@@ -255,8 +269,8 @@ class MemoirServiceTest {
         request.setData(Map.of("title", "새 회고", "content", "새 내용"));
         request.setDate(LocalDate.now().plusDays(1));
 
-        given(usersRepository.findById(1L)).willReturn(java.util.Optional.of(users));
-        given(memoirRepository.findByUsersIdAndDate(1L, request.getDate())).willReturn(java.util.Optional.empty());
+        given(usersRepository.findById(CURRENT_USER_ID)).willReturn(Optional.of(users));
+        given(memoirRepository.findByUsersIdAndDate(CURRENT_USER_ID, request.getDate())).willReturn(Optional.empty());
 
         // when / then
         assertThrows(IllegalArgumentException.class, () -> memoirService.writeMemoir(request));
@@ -274,7 +288,7 @@ class MemoirServiceTest {
         MemoirUpdateRequest request = new MemoirUpdateRequest();
         request.setData(Map.of("title", "수정된 개선", "content", "수정된 내용"));
 
-        given(memoirRepository.findByIdAndUsersId(1L, 1L)).willReturn(java.util.Optional.of(memoir));
+        given(memoirRepository.findByIdAndUsersId(1L, CURRENT_USER_ID)).willReturn(Optional.of(memoir));
 
         // when
         memoirService.updateImprovement(request, 1L);
@@ -292,7 +306,7 @@ class MemoirServiceTest {
         MemoirUpdateRequest request = new MemoirUpdateRequest();
         request.setData(Map.of("title", "수정된 개선", "content", "수정된 내용"));
 
-        given(memoirRepository.findByIdAndUsersId(1L, 1L)).willReturn(java.util.Optional.empty());
+        given(memoirRepository.findByIdAndUsersId(1L, CURRENT_USER_ID)).willReturn(Optional.empty());
 
         // when / then
         assertThrows(MemoirNotFoundException.class, () -> memoirService.updateImprovement(request, 1L));
