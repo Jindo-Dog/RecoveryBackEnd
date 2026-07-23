@@ -1,4 +1,4 @@
-package com.example.recovery.service.auth;
+package com.example.recovery.service.users;
 
 import com.example.recovery.common.exception.EmailAlreadyExistException;
 import com.example.recovery.domain.user.UserCredential;
@@ -8,6 +8,8 @@ import com.example.recovery.repository.users.UsersRepository;
 import com.example.recovery.request.UserPasswordUpdateRequest;
 import com.example.recovery.request.UserUpdateRequest;
 import com.example.recovery.request.auth.SignupRequest;
+import com.example.recovery.service.auth.AuthTokenService;
+import com.example.recovery.service.user.UsersService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

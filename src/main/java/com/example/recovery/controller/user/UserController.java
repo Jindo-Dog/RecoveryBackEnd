@@ -3,7 +3,7 @@ package com.example.recovery.controller.user;
 import com.example.recovery.request.UserPasswordUpdateRequest;
 import com.example.recovery.request.UserUpdateRequest;
 import com.example.recovery.response.UserResponse;
-import com.example.recovery.service.auth.UsersService;
+import com.example.recovery.service.user.UsersService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;

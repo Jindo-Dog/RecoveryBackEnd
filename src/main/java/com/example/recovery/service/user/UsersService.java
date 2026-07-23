@@ -1,4 +1,4 @@
-package com.example.recovery.service.auth;
+package com.example.recovery.service.user;
 
 import com.example.recovery.common.exception.EmailAlreadyExistException;
 import com.example.recovery.common.exception.UsersNotFoundException;
@@ -10,6 +10,7 @@ import com.example.recovery.request.UserPasswordUpdateRequest;
 import com.example.recovery.request.UserUpdateRequest;
 import com.example.recovery.request.auth.SignupRequest;
 import com.example.recovery.response.UserResponse;
+import com.example.recovery.service.auth.AuthTokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
