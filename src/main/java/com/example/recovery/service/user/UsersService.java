@@ -119,7 +119,13 @@ public class UsersService {
         UserCredential credential = userCredentialRepository.findByUsersId(userId)
                 .orElseThrow(() -> new UsersNotFoundException("해당 사용자가 없습니다."));
 
-        String objectPath = userId.toString();
+        String originalFilename = multipartFile.getOriginalFilename();
+        String extension = "";
+        if (originalFilename != null && originalFilename.contains(".")) {
+            extension = originalFilename.substring(originalFilename.lastIndexOf('.'));
+        }
+
+        String objectPath = userId + extension;
         String encodedObjectPath = UriUtils.encodePath(
                 objectPath,
                 StandardCharsets.UTF_8
@@ -142,10 +148,7 @@ public class UsersService {
             RestClient.create().post()
                     .uri(uploadUrl)
                     .header("apikey", supabaseServiceRoleKey)
-                    .header(
-                            HttpHeaders.AUTHORIZATION,
-                            "Bearer " + supabaseServiceRoleKey
-                    )
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + supabaseServiceRoleKey)
                     .header("x-upsert", "true")
                     .contentType(contentType)
                     .body(multipartFile.getBytes())
