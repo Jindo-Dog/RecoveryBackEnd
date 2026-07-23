@@ -12,9 +12,11 @@ import com.example.recovery.request.auth.SignupRequest;
 import com.example.recovery.response.UserResponse;
 import com.example.recovery.service.auth.AuthTokenService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -28,6 +30,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UsersService {
@@ -140,10 +143,7 @@ public class UsersService {
                 + encodedObjectPath;
 
         try {
-            MediaType contentType = MediaType.APPLICATION_OCTET_STREAM;
-            if (multipartFile.getContentType() != null) {
-                contentType = MediaType.parseMediaType(multipartFile.getContentType());
-            }
+            MediaType contentType = resolveContentTypeOrDefault(multipartFile.getContentType());
 
             RestClient.create().post()
                     .uri(uploadUrl)
@@ -166,6 +166,19 @@ public class UsersService {
 
         credential.getUsers().setProfileUrl(publicUrl);
         credential.setUpdatedAt(OffsetDateTime.now());
+    }
+
+    private MediaType resolveContentTypeOrDefault(String rawContentType) {
+        if (StringUtils.isBlank(rawContentType)) {
+            log.warn("업로드 파일 Content-Type이 비어 있어 기본 타입(application/octet-stream)으로 처리합니다.");
+            return MediaType.APPLICATION_OCTET_STREAM;
+        }
+        try {
+            return MediaType.parseMediaType(rawContentType);
+        } catch (InvalidMediaTypeException e) {
+            log.warn("잘못된 Content-Type '{}' 이 전달되어 기본 타입(application/octet-stream)으로 처리합니다.", rawContentType);
+            return MediaType.APPLICATION_OCTET_STREAM;
+        }
     }
 
     @Transactional
