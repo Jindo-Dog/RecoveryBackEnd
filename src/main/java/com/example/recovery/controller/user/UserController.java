@@ -1,5 +1,6 @@
 package com.example.recovery.controller.user;
 
+import com.example.recovery.request.UserPasswordUpdateRequest;
 import com.example.recovery.request.UserUpdateRequest;
 import com.example.recovery.response.UserResponse;
 import com.example.recovery.service.auth.UsersService;
@@ -35,7 +36,7 @@ public class UserController {
 
     @PatchMapping("/profileImg")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void updateProfileImg(MultipartFile multipartFile) {
+    public void updateProfileImg(@RequestPart("multipartFile") MultipartFile multipartFile) {
         if (multipartFile == null || multipartFile.isEmpty()) {
             throw new IllegalArgumentException("업로드할 파일이 없습니다.");
         }
