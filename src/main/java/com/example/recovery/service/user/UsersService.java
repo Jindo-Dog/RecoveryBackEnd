@@ -12,18 +12,21 @@ import com.example.recovery.request.auth.SignupRequest;
 import com.example.recovery.response.UserResponse;
 import com.example.recovery.service.auth.AuthTokenService;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.util.UriUtils;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
+import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -33,8 +36,14 @@ public class UsersService {
     private final UsersRepository usersRepository;
     private final AuthTokenService authTokenService;
 
-    @Value("${app.upload.profile-root:uploads/profile}")
-    private String profileRootDir;
+    @Value("${app.supabase.url:}")
+    private String supabaseUrl;
+
+    @Value("${app.supabase.service-role-key:}")
+    private String supabaseServiceRoleKey;
+
+    @Value("${app.supabase.profile-bucket:profileImages}")
+    private String supabaseProfileBucket;
 
     public void signup(SignupRequest request) {
         if (userCredentialRepository.findByEmail(request.getEmail()).isPresent()) {
@@ -101,29 +110,58 @@ public class UsersService {
 
     @Transactional
     public void updateProfileImg(MultipartFile multipartFile) {
+        if (StringUtils.isBlank(supabaseUrl) || StringUtils.isBlank(supabaseServiceRoleKey)) {
+            throw new IllegalStateException("Supabase 설정이 누락되었습니다.");
+        }
+
         Long userId = authTokenService.getCurrentUserId();
 
         UserCredential credential = userCredentialRepository.findByUsersId(userId)
                 .orElseThrow(() -> new UsersNotFoundException("해당 사용자가 없습니다."));
 
-        String originalFilename = multipartFile.getOriginalFilename();
-        String extension = "";
-        if (originalFilename != null && originalFilename.contains(".")) {
-            extension = originalFilename.substring(originalFilename.lastIndexOf('.'));
-        }
-
-        String storedFilename = UUID.randomUUID() + extension;
-        Path userDir = Path.of(profileRootDir, String.valueOf(userId));
-        Path targetPath = userDir.resolve(storedFilename);
+        String objectPath = userId.toString();
+        String encodedObjectPath = UriUtils.encodePath(
+                objectPath,
+                StandardCharsets.UTF_8
+        );
+        String normalizedBaseUrl = supabaseUrl.endsWith("/")
+                ? supabaseUrl.substring(0, supabaseUrl.length() - 1)
+                : supabaseUrl;
+        String uploadUrl = normalizedBaseUrl
+                + "/storage/v1/object/"
+                + supabaseProfileBucket
+                + "/"
+                + encodedObjectPath;
 
         try {
-            Files.createDirectories(userDir);
-            Files.copy(multipartFile.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) {
+            MediaType contentType = MediaType.APPLICATION_OCTET_STREAM;
+            if (multipartFile.getContentType() != null) {
+                contentType = MediaType.parseMediaType(multipartFile.getContentType());
+            }
+
+            RestClient.create().post()
+                    .uri(uploadUrl)
+                    .header("apikey", supabaseServiceRoleKey)
+                    .header(
+                            HttpHeaders.AUTHORIZATION,
+                            "Bearer " + supabaseServiceRoleKey
+                    )
+                    .header("x-upsert", "true")
+                    .contentType(contentType)
+                    .body(multipartFile.getBytes())
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (IOException | RestClientResponseException e) {
             throw new IllegalStateException("프로필 이미지 저장에 실패했습니다.", e);
         }
 
-        credential.getUsers().setProfileUrl(targetPath.toString().replace('\\', '/'));
+        String publicUrl = normalizedBaseUrl
+                + "/storage/v1/object/public/"
+                + supabaseProfileBucket
+                + "/"
+                + encodedObjectPath;
+
+        credential.getUsers().setProfileUrl(publicUrl);
         credential.setUpdatedAt(OffsetDateTime.now());
     }
 
