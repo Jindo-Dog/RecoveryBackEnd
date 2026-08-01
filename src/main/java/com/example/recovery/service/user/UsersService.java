@@ -45,7 +45,7 @@ public class UsersService {
     @Value("${app.supabase.service-role-key:}")
     private String supabaseServiceRoleKey;
 
-    @Value("${app.supabase.profile-bucket:profileImages}")
+    @Value("${app.supabase.profile-bucket:profileImage}")
     private String supabaseProfileBucket;
 
     public void signup(SignupRequest request) {

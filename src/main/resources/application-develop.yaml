@@ -50,7 +50,7 @@ app:
   supabase:
     url: ${SUPABASE_URL}
     service-role-key: ${SUPABASE_SERVICE_ROLE_KEY}
-    profile-bucket: ${SUPABASE_PROFILE_BUCKET:profileImages}
+    profile-bucket: ${SUPABASE_PROFILE_BUCKET:profileImage}
 
 server:
   port: 8080
