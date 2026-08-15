@@ -1,6 +1,11 @@
 spring:
   application:
     name: "recovery"
+  ai:
+    openai:
+      api-key: ${GPT_KEY}
+      chat:
+        model: ${GPT_MODEL:gpt-4o-mini}
   servlet:
     multipart:
       max-file-size: 10MB

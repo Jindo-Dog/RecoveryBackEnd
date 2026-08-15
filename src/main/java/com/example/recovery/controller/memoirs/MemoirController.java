@@ -1,12 +1,10 @@
 package com.example.recovery.controller.memoirs;
 
-import com.example.recovery.request.MemoirCalenderRequest;
-import com.example.recovery.request.MemoirUpdateRequest;
-import com.example.recovery.request.MemoirWriteRequest;
-import com.example.recovery.request.SimplePageRequest;
+import com.example.recovery.request.*;
 import com.example.recovery.response.MemoirCalenderResponse;
 import com.example.recovery.response.MemoirResponse;
 import com.example.recovery.response.MemoirSimpleResponse;
+import com.example.recovery.service.memoirs.FeedbackService;
 import com.example.recovery.service.memoirs.MemoirService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 public class MemoirController {
 
     private final MemoirService memoirService;
+    private final FeedbackService feedbackService;
 
     @PostMapping(params = "!date")
     public MemoirSimpleResponse viewMemoirsByList(@Validated @ModelAttribute SimplePageRequest simplePageRequest) {
@@ -51,5 +50,11 @@ public class MemoirController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void updateImprovement(@Validated @RequestBody MemoirUpdateRequest request, @PathVariable Long memoirId) {
         memoirService.updateImprovement(request, memoirId);
+    }
+
+    @PostMapping("/{memoirId:\\d+}/feedback")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void requestAIFeedBack(@Validated @RequestBody FeedbackGenerateRequest request, @PathVariable Long memoirId) {
+        feedbackService.generateFeedback(request, memoirId);
     }
 }
